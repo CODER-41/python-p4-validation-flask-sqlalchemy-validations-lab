@@ -12,6 +12,30 @@ class Author(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     # Add validators 
+    @validates('name')
+    def validate_name(self, key, name):
+
+        if not name:
+            raise ValueError("Author must have a name")
+        
+        existing_author = Author.query.filter(Author.name == name).first()
+        if existing_author:
+            raise ValueError("Author name must be unique")
+        
+        return name
+    
+    @validates('phone_number')
+    def validate_phone_number(self, key, phone_number):
+
+        if phone_number is not None:
+            if len(phone_number) != 10:
+
+                raise ValueError("Phone number must be exactly 10 digits")
+        
+        if phone_number and not phone_number.isdigit():
+            raise ValueError("Phone number must contain only digits")
+        
+        return phone_number
 
     def __repr__(self):
         return f'Author(id={self.id}, name={self.name})'
@@ -28,6 +52,33 @@ class Post(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     # Add validators  
+    @validates('content')
+    def validate_content(self, key, content):
+        if not content or len(content) < 250:
+            raise ValueError("Post content must be at least 250 characters long")
+        return content
+    
+
+    @validates('summary')
+    def validate_summary(self, key, summary):
+        if summary and len(summary) > 250:
+            raise ValueError("Post summary must be a maximum of 250 characters ")
+        return summary
+    
+    @validates('category')
+    def validate_category(self, key, category):
+        if category not in ['fiction', 'Non-Fiction']:
+            raise ValueError("Post category must be either 'Fiction' or 'Non-Fiction'")
+        return category
+    
+    @validates('title')
+    def validate_title(self, key, title):
+        click_bait_phrases = ["Won't Believe", "Secret", "Top", "Guess"]
+
+        if not any(phrase in title for phrase in click_bait_phrases):
+            raise ValueError("Post title must contain one of: 'Won't Believe', 'Secret', 'Top', or 'Guess'")
+        return title
+
 
 
     def __repr__(self):
